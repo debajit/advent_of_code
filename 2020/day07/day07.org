@@ -1,0 +1,278 @@
+* Day 7
+
+https://adventofcode.com/2020/day/7
+
+** Part 1
+
+*** Problem
+
+... consider the following rules:
+
+#+begin_example
+light red bags contain 1 bright white bag, 2 muted yellow bags.
+dark orange bags contain 3 bright white bags, 4 muted yellow bags.
+bright white bags contain 1 shiny gold bag.
+muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
+shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.
+dark olive bags contain 3 faded blue bags, 4 dotted black bags.
+vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
+faded blue bags contain no other bags.
+dotted black bags contain no other bags.
+#+end_example
+
+These rules specify the required contents for 9 bag types. In this example, every faded blue bag is empty, every vibrant plum bag contains 11 bags (5 faded blue and 6 dotted black), and so on.
+
+You have a shiny gold bag. If you wanted to carry it in at least one other bag, how many different bag colors would be valid for the outermost bag? (In other words: how many colors can, eventually, contain at least one shiny gold bag?)
+
+In the above rules, the following options would be available to you:
+
+- A bright white bag, which can hold your shiny gold bag directly.
+- A muted yellow bag, which can hold your shiny gold bag directly, plus some other bags.
+- A dark orange bag, which can hold bright white and muted yellow bags, either of which could then hold your shiny gold bag.
+- A light red bag, which can hold bright white and muted yellow bags, either of which could then hold your shiny gold bag.
+
+So, in this example, the number of bag colors that can eventually contain at least one shiny gold bag is 4.
+
+*How many bag colors can eventually contain at least one shiny gold bag?*
+(The list of rules is quite long; make sure you get all of it.)
+
+*** Solution
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :flags -std=c++17 :results verbatim
+  #include <fstream>
+  #include <sstream>
+  #include <vector>
+  #include <utility>
+  #include <unordered_map>
+  #include <unordered_set>
+  #include <regex>
+  using namespace std;
+
+  const regex containerRegex(R"((.*) bags contain (.*)\.)");
+  const regex bagSpecRegex(R"((\d+) (\w+\ \w+) bags?)");
+
+  class BagGraph {
+
+  public:
+
+      void addEdge(const string& from, const string& to) {
+          adjList[from].push_back(to);
+      }
+
+      int getContainerCount(const string& target) {
+          unordered_set<string> path;
+
+          // For each vertex, we will check to see if a path exists from
+          // that vertex to the target vertex. Along the way, we will
+          // keep track of the vertices encounterd in the path. All
+          // these vertices can contain the target bag.
+          for (const auto& [fromVertex, _canHoldList] : adjList) {
+              pathExistsDFS(fromVertex, target, path);
+          }
+
+          return path.size();
+      }
+
+  private:
+
+      unordered_map<string, vector<string>> adjList;
+
+      bool pathExistsDFS(const string& fromVertex, const string& toVertex, unordered_set<string>& path) {
+          path.insert(fromVertex);
+
+          for (const auto& neighbor : adjList[fromVertex]) {
+              if (neighbor == toVertex) {
+                  return true;
+              }
+              else if (pathExistsDFS(neighbor, toVertex, path)) {
+                  return true;
+              }
+          }
+
+          path.erase(fromVertex);
+          return false;
+      }
+  };
+
+  BagGraph graphFromBagRules(const string& filename) {
+      BagGraph graph;
+
+      ifstream file(filename);
+      string line;
+      smatch match;
+      string container, smallerBags, bagSpec;
+
+      while (getline(file, line)) {
+          if (regex_search(line, match, containerRegex)) {
+              container = match.str(1);
+              smallerBags = match.str(2);
+              // cout << "Container: " << container << ", smaller: " << smallerBags << "\n";
+
+              stringstream ss(smallerBags);
+              while(getline(ss, bagSpec, ',')) {
+                  // cout << "  bagSpec: " << bagSpec << "\n";
+                  if (regex_search(bagSpec, match, bagSpecRegex)) {
+                      string count = match.str(1);
+                      string color = match.str(2);
+                      // cout << "    count: " << count << "\n";
+                      // cout << "    color: " << color << "\n";
+
+                      graph.addEdge(container, color);
+                  }
+              }
+          }
+      }
+
+      file.close();
+      return graph;
+  }
+
+  int main() {
+      BagGraph graph = graphFromBagRules("input");
+      cout << graph.getContainerCount("shiny gold");
+  }
+#+end_src
+
+#+RESULTS:
+: 289
+
+**** Output
+
+#+begin_example
+: 289
+#+end_example
+
+
+** Part 2
+
+*** Problem
+
+It's getting pretty expensive to fly these days - not because of ticket prices, but because of the ridiculous number of bags you need to buy!
+
+Consider again your shiny gold bag and the rules from the above example:
+
+- faded blue bags contain 0 other bags.
+- dotted black bags contain 0 other bags.
+- vibrant plum bags contain 11 other bags: 5 faded blue bags and 6 dotted black bags.
+- dark olive bags contain 7 other bags: 3 faded blue bags and 4 dotted black bags.
+
+  So, a single shiny gold bag must contain 1 dark olive bag (and the 7 bags within it) plus 2 vibrant plum bags (and the 11 bags within each of those): ~1 + 1*7 + 2 + 2*11~ = ~32~ bags!
+
+  Of course, the actual rules have a small chance of going several levels deeper than this example; be sure to count all of the bags, even if the nesting becomes topologically impractical!
+
+Here's another example:
+
+- shiny gold bags contain 2 dark red bags.
+- dark red bags contain 2 dark orange bags.
+- dark orange bags contain 2 dark yellow bags.
+- dark yellow bags contain 2 dark green bags.
+- dark green bags contain 2 dark blue bags.
+- dark blue bags contain 2 dark violet bags.
+- dark violet bags contain no other bags.
+
+In this example, a single shiny gold bag must contain ~126~ other bags.
+
+*How many individual bags are required inside your single shiny gold bag?*
+
+*** Solution
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++17 :results verbatim
+  #include <fstream>
+  #include <sstream>
+  #include <vector>
+  #include <utility>
+  #include <unordered_map>
+  #include <unordered_set>
+  #include <regex>
+  using namespace std;
+
+  const regex containerRegex(R"((.*) bags contain (.*)\.)");
+  const regex bagSpecRegex(R"((\d+) (\w+\ \w+) bags?)");
+
+  class WeightedBagGraph {
+
+  public:
+
+      void addEdge(const string& from, const string& to, int weight) {
+          adjList[from].push_back({to, weight});
+      }
+
+      int bagCount(const string& fromVertex) {
+          return bagCountDFS(fromVertex);
+      }
+
+      // void print() const {
+      //     for (auto& [vertex, neighborInfoList] : adjList) {
+      //         cout << vertex << ": ";
+      //         for (auto& [neighbor, count] : neighborInfoList)
+      //             cout << neighbor << " (" << count << ") ";
+      //         cout << "\n";
+      //     }
+      // }
+
+  private:
+
+      unordered_map<string, vector<pair<string, int>>> adjList;
+
+      // Count of bags inside fromVertex
+      int bagCountDFS(const string& fromVertex, int sum = 0) {
+          if (adjList[fromVertex].empty()) {
+              // No neighbors
+              return 0;
+          } else {
+              for (auto& [neighbor, count]: adjList[fromVertex]) {
+                  sum += count + count * bagCountDFS(neighbor);
+              }
+          }
+
+          return sum;
+      }
+  };
+
+  WeightedBagGraph graphFromBagRules(const string& filename) {
+      WeightedBagGraph graph;
+
+      ifstream file(filename);
+      string line;
+      smatch match;
+      string container, smallerBags, bagSpec;
+
+      while (getline(file, line)) {
+          if (regex_search(line, match, containerRegex)) {
+              container = match.str(1);
+              smallerBags = match.str(2);
+              // cout << "Container: " << container << ", smaller: " << smallerBags << "\n";
+
+              stringstream ss(smallerBags);
+              while(getline(ss, bagSpec, ',')) {
+                  // cout << "  bagSpec: " << bagSpec << "\n";
+                  if (regex_search(bagSpec, match, bagSpecRegex)) {
+                      int count = stoi(match.str(1));
+                      string color = match.str(2);
+                      // cout << "    count: " << count << "\n";
+                      // cout << "    color: " << color << "\n";
+
+                      graph.addEdge(container, color, count);
+                  }
+              }
+          }
+      }
+
+      file.close();
+      return graph;
+  }
+
+  int main() {
+      WeightedBagGraph graph = graphFromBagRules("input");
+      cout << graph.bagCount("shiny gold");
+  }
+#+end_src
+
+#+RESULTS:
+: 30055
+
+**** Output
+
+#+begin_example
+30055
+#+end_example

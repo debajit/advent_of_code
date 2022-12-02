@@ -1,0 +1,217 @@
+#+TITLE:Day 2: Dive!
+
+https://adventofcode.com/2021/day/2
+
+* Part 1
+
+** Problem
+
+It seems like the submarine can take a series of commands like forward 1, down 2, or up 3:
+
+- forward X increases the horizontal position by X units.
+- down X increases the depth by X units.
+- up X decreases the depth by X units.
+
+#+begin_src text
+  forward 5
+  down 5
+  forward 8
+  up 3
+  down 8
+  forward 2
+#+end_src
+
+After following these instructions, you would have a horizontal position of 15 and a depth of 10. (Multiplying these together produces 150.)
+
+Calculate the horizontal position and depth you would have after following the planned course. *What do you get if you multiply your final horizontal position by your final depth?*
+
+
+** Solutions
+
+*** C++
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++11 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <unordered_map>
+  #include <limits>
+  using namespace std;
+
+  int powerConsumption(const string& filename) {
+      ifstream file(filename);
+      string binaryStr;
+      unordered_map<int, int> freq0AtPos;
+      unordered_map<int, int> freq1AtPos;
+
+      int minFreq = -1;
+      int maxFreq = numeric_limits<int>::max();
+
+      while (file >> binaryStr) {
+          auto len = binaryStr.length();
+          for (int i = 0; i < len; ++i) {
+              if (binaryStr[i] == '0')
+                  ++freq0AtPos[i];
+              else
+                  ++freq1AtPos[i];
+          }
+      }
+  }
+
+  int main() {
+      cout << increaseCount("example.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: 1882980
+
+
+*** Scala
+
+#+begin_src scala
+  import scala.io.Source
+
+  def computePosition(filename: String) = {
+    val file = Source.fromFile(filename)
+
+    val (horizontalPosition, depth) =
+      file.getLines.
+        map(_.split(" ")).
+        foldLeft((0, 0))((acc, pair) => {
+          val horizontalPosition = acc._1
+          val depth = acc._2
+
+          val direction = pair(0)
+          val value = pair(1).toInt
+
+          println(s"$direction $value")
+
+          direction match {
+            case "forward" => (horizontalPosition + value, depth)
+            case "down" => (horizontalPosition, depth + value)
+            case "up" => (horizontalPosition, depth - value)
+          }
+        })
+
+    file.close
+    horizontalPosition * depth
+  }
+
+  println(computePosition("input.txt"))
+#+end_src
+
+*** Elixir
+
+TODO
+
+
+* Part 2
+
+** Problem
+
+In addition to horizontal position and depth, you'll also need to track a third value, aim, which also starts at 0. The commands also mean something entirely different than you first thought:
+
+- down X increases your aim by X units.
+- up X decreases your aim by X units.
+- forward X does two things:
+  - It increases your horizontal position by X units.
+  - It increases your depth by your aim multiplied by X.
+
+#+begin_src text
+  forward 5
+  down 5
+  forward 8
+  up 3
+  down 8
+  forward 2
+#+end_src
+
+Now, the above example does something different:
+
+- ~forward 5~ adds 5 to your horizontal position, a total of 5. Because your aim is 0, your depth does not change.
+- ~down 5~ adds 5 to your aim, resulting in a value of 5.
+- ~forward 8~ adds 8 to your horizontal position, a total of 13. Because your aim is 5, your depth increases by 8*5=40.
+- ~up 3~ decreases your aim by 3, resulting in a value of 2.
+- ~down 8~ adds 8 to your aim, resulting in a value of 10.
+- ~forward 2~ adds 2 to your horizontal position, a total of 15. Because your aim is 10, your depth increases by 2*10=20 to a total of 60.
+
+  After following these new instructions, you would have a horizontal position of 15 and a depth of 60. (Multiplying these produces 900.)
+
+  Using this new interpretation of the commands, calculate the horizontal position and depth you would have after following the planned course. *What do you get if you multiply your final horizontal position by your final depth?*
+
+
+** Solutions
+
+*** C++
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++11 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  using namespace std;
+
+  int computePosition (const string& filename) {
+      int horizontalPosition = 0;
+      int depth = 0;
+      int aim = 0;
+
+      ifstream file(filename);
+      string direction;
+      int value;
+
+      while (file >> direction >> value) {
+          if (direction == "forward") {
+              horizontalPosition += value;
+              depth += aim * value;
+          }
+          else if (direction == "down")
+              aim += value;
+          else if (direction == "up")
+              aim -= value;
+      }
+
+      return horizontalPosition * depth;
+  }
+
+  int main() {
+      cout << computePosition("input.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: 1971232560
+
+
+*** Scala
+
+#+begin_src scala
+  import scala.io.Source
+
+  def computePosition(filename: String) = {
+    val file = Source.fromFile(filename)
+
+    val (horizontalPosition, depth, _aim) =
+      file.getLines.
+        map(_.split(" ")).
+        foldLeft((0, 0, 0))((acc, pair) => {
+          val horizontalPosition = acc._1
+          val depth = acc._2
+          val aim = acc._3
+
+          val direction = pair(0)
+          val value = pair(1).toInt
+
+          println(s"$direction $value")
+
+          direction match {
+            case "forward" => (horizontalPosition + value, depth + aim * value, aim)
+            case "down" => (horizontalPosition, depth, aim + value)
+            case "up" => (horizontalPosition, depth, aim - value)
+          }
+        })
+
+    file.close
+    horizontalPosition * depth
+  }
+
+  println(computePosition("input.txt"))
+#+end_src

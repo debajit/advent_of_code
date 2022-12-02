@@ -1,0 +1,11 @@
+* Advent of Code 2020
+
+My solutions to the [[https://adventofcode.com/2020/][Advent of Code 2020]] programming puzzles, written in C++
+
+- [[file:day01/day01.org][Day 1: Report Repair]]
+- [[file:day02/day02.org][Day 2: Password Philosophy]]
+- [[file:day03/day03.org][Day 3: Toboggan Trajectory]]
+- [[file:day04/day04.org][Day 4: Passport Processing]]
+- [[file:day05/day05.org][Day 5: Binary Boarding]]
+- [[file:day06/day06.org][Day 6: Custom Customs]]
+- [[file:day07/day07.org][Day 7: Handy Haversacks]]
