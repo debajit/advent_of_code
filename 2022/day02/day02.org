@@ -1,0 +1,90 @@
+#+TITLE:Day 2: Rock Paper Scissors
+
+* Part 1
+
+** Problem
+
+The score for a single round is the score for the shape you selected
+(1 for Rock, 2 for Paper, and 3 for Scissors) plus the score for the
+outcome of the round (0 if you lost, 3 if the round was a draw, and 6
+if you won).
+
+For example, suppose you were given the following strategy guide:
+
+#+begin_example
+A Y
+B X
+C Z
+#+end_example
+
+This strategy guide predicts and recommends the following:
+
+- In the first round, your opponent will choose Rock (A), and you
+  should choose Paper (Y). This ends in a win for you with a score of
+  8 (2 because you chose Paper + 6 because you won).
+
+- In the second round, your opponent will choose Paper (B), and you
+  should choose Rock (X). This ends in a loss for you with a score of
+  1 (1 + 0).
+
+- The third round is a draw with both players choosing Scissors,
+  giving you a score of 3 + 3 = 6.
+
+In this example, if you were to follow the strategy guide, you would
+get a total score of 15 (8 + 1 + 6).
+
+What would your total score be if everything goes exactly according to
+your strategy guide?
+
+
+** Solution (C++)
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+
+  bool canWin(char opponentPlay, char play) {
+      // There are only three ways we can win:
+      // A B
+      // B C
+      // A C
+
+      return play - opponentPlay == 1 || play - opponentPlay == -2;
+  }
+
+  int calcScore(char opponentPlay, char play) {
+      int shapeScore = play - 'X' + 1;
+      play = 'A' + shapeScore - 1;          // normalize char
+
+      int outcomeScore = 0;
+
+      if (canWin(opponentPlay, play))
+          outcomeScore = 6;
+      else if (opponentPlay == play) // We draw
+          outcomeScore = 3;
+
+      return shapeScore + outcomeScore;
+  }
+
+  int rockPaperScissorsScore(const string& filename) {
+      int sum = 0;
+      ifstream file(filename);
+      char opponentPlay, play;
+
+      while (file >> opponentPlay >> play) {
+          int score = calcScore(opponentPlay, play);
+          // cout << opponentPlay << " " << play << " " << score << "\n";
+          sum += score;
+      }
+
+      file.close();
+      return sum;
+  }
+
+  int main() {
+      cout << rockPaperScissorsScore("input.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: 11841
