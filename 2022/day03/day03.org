@@ -78,22 +78,22 @@ Find the item type that appears in both compartments of each rucksack.
 
           // Compare with second half
           bool found = false;
-          char common;
+          char c;
           for (int i = halfLen; i < len; ++i) {
               if (exists[line[i]]) {
-                  common = line[i];
+                  c = line[i];
                   found = true;
                   break;
               }
           }
 
           if (found) {
-              if (islower(common))
-                  sum += (common - 'a' + 1);
+              if (islower(c))
+                  sum += (c - 'a' + 1);
               else
-                  sum += (common - 'A' + 27);
+                  sum += (c - 'A' + 27);
 
-              cout << common;
+              cout << c;
           }
 
           cout << "\n";
@@ -413,3 +413,70 @@ Line: mJFmGDDDhGhBJHCQddllqTvCllqTRRWNnMbT  C
 Line: FdFDGdDDDhhHdZDjhDmpwSPVZszpwZsVgsPRZs  Z
 7845
 #+end_example
+
+
+* Part 2
+
+** Problem
+
+Now, instead of finding the c item in both halves of each line,
+find the c item in each group of three consecutive lines, and sum
+them up similarly.
+
+
+** Solution (C++). θ(n) time in the number of lines. θ(n) space in the size of the character set allowed
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <unordered_map>
+  using namespace std;
+
+  int prioritySum(const string& filename) {
+      int sum = 0;
+      ifstream file(filename);
+
+      while (file) {
+          string line;
+          unordered_map<char, int> count;
+
+          for (int i = 0; i < 3; ++i) {
+              getline(file, line);
+
+              for (auto c : line) {
+                  if (count[c] == i)
+                      ++count[c];
+              }
+          }
+
+          // Find the first character that occurs in all the three
+          // lines.
+          char common = 0;
+          for (auto [c, freq] : count) {
+              if (freq == 3) {
+                  common = c;
+                  break;
+              }
+          }
+
+          if (common != 0) {
+              // cout << "Common: " << common << "\n";
+              if (islower(common))
+                  sum += (common - 'a' + 1);
+              else
+                  sum += (common - 'A' + 27);
+          }
+      }
+
+      file.close();
+      return sum;
+  }
+
+  int main() {
+      cout << prioritySum("input.txt") << "\n";
+      // cout << prioritySum("example.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: 2790
