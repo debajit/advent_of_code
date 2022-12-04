@@ -1,0 +1,415 @@
+#+TITLE:Day 3: Rucksack Reorganization
+
+* Part 1
+
+** Problem
+
+The list of items for each rucksack is given as characters all on a
+single line. A given rucksack always has the same number of items in
+each of its two compartments, so the first half of the characters
+represent items in the first compartment, while the second half of the
+characters represent items in the second compartment.
+
+For example, suppose you have the following list of contents from six
+rucksacks:
+
+#+begin_example
+vJrwpWtwJgWrhcsFMMfFFhFp
+jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+PmmdzqPrVvPwwTWBwg
+wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+ttgJtRGJQctTZtZT
+CrZsJsPPZsGzwwsLwLmpwMDw
+#+end_example
+
+- The first rucksack contains the items vJrwpWtwJgWrhcsFMMfFFhFp,
+  which means its first compartment contains the items vJrwpWtwJgWr,
+  while the second compartment contains the items hcsFMMfFFhFp. The
+  only item type that appears in both compartments is lowercase p.
+
+- The second rucksack's compartments contain jqHRNqRjqzjGDLGL and
+  rsFMfFZSrLrFZsSL. The only item type that appears in both
+  compartments is uppercase L.
+
+- The third rucksack's compartments contain PmmdzqPrV and vPwwTWBwg;
+  the only common item type is uppercase P.
+
+- The fourth rucksack's compartments only share item type v.
+- The fifth rucksack's compartments only share item type t.
+- The sixth rucksack's compartments only share item type s.
+
+To help prioritize item rearrangement, every item type can be converted to a priority:
+
+- Lowercase item types a through z have priorities 1 through 26.
+- Uppercase item types A through Z have priorities 27 through 52.
+
+In the above example, the priority of the item type that appears in
+both compartments of each rucksack is 16 (p), 38 (L), 42 (P), 22 (v),
+20 (t), and 19 (s); the sum of these is 157.
+
+Find the item type that appears in both compartments of each rucksack.
+*What is the sum of the priorities of those item types?*
+
+
+** Solution (C++)
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <unordered_map>
+  using namespace std;
+
+  int prioritySum(const string& filename) {
+      int sum = 0;
+      ifstream file(filename);
+      string line;
+
+      while (file >> line) {
+          unordered_map<char, bool> exists;
+
+          cout << "Line: " << line << "  ";
+          int len = line.size();
+          int halfLen = len / 2;
+
+          // Add first half to hashmap
+          for (int i = 0; i < halfLen; ++i) {
+              exists[line[i]] = true;
+          }
+
+          // Compare with second half
+          bool found = false;
+          char common;
+          for (int i = halfLen; i < len; ++i) {
+              if (exists[line[i]]) {
+                  common = line[i];
+                  found = true;
+                  break;
+              }
+          }
+
+          if (found) {
+              if (islower(common))
+                  sum += (common - 'a' + 1);
+              else
+                  sum += (common - 'A' + 27);
+
+              cout << common;
+          }
+
+          cout << "\n";
+      }
+
+      file.close();
+      return sum;
+  }
+
+  int main() {
+      cout << prioritySum("input.txt") << "\n";
+      // cout << prioritySum("example.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Line: gfWpjRRQffQGCHHJsGqjsj  j
+Line: SclzJZZvmmnPbJtVSqqNBqVCBdSCsd  S
+Line: tlbvZJDZtmtPcJmlPnhMFQWWpMRFTfLDRRTWRp  D
+Line: HjMPgSWjVrjgbHRRSSMRgjRdpdbGdlcdCvQfcCdlwQJfdf  b
+Line: LNDnhtNtLNFFZDtFnhzvdldDflvvDCdlJfldpJ  D
+Line: ZFLFZZmFtFtTNTSPRrVPWWMpRP  T
+Line: qLBSBLRwmgzqCbzCffDlrfCV  z
+Line: TFFFHNWFMFFMpHpGHMTHGNhrldWZCsdZsslZlZfrflDVss  W
+Line: PTMcPGntTThHhTGctnMvSwjjvmmqLBmnjqqgCR  n
+Line: nClJtMwwntqVVPJcgZqq  J
+Line: mjpsDcrcSSFFPZqFBWWgVP  F
+Line: vQcjsvhrvvrmhbmNHMNnlHbNMtCtNM  b
+Line: bgvvhnTQtjrrrhsDDf  h
+Line: pLSMltLzLLSjFrSSjrSJHD  S
+Line: zNWRLBdZPllPQtCvttgCqb  P
+Line: DRlDrrFTNDNlgzsGTBfcnqhhcnJfcrCSqc  r
+Line: MMmmdWtdLmvtldHjMmQfPBqSJWnfCCCqcWSSPJ  W
+Line: vjHMjLmjpLtHptQLmHvwTRgNVVpTzZFZgZRlsVTN  p
+Line: rzpMpDCGFCFFjRFsRPFRNFPv  F
+Line: fWclbHCHtSmfvjnmfsvZ  f
+Line: wTcTlSwwtQtWclBQBLGMLMCLVzVLwJGqLd  w
+Line: MQSjLNjPPLLSBPjfQhSPHjDVCjDtVVpDHwbwVpbD  j
+Line: RcmWzsRrzZrmTszWRqWlmRJscbtHwCbndCtcDVddDpdnVnbt  c
+Line: JTsrGGTqmwTlWmTzJzWmhhPLLGgPFgBffSSPhFFM  G
+Line: qMMRNZMDDNWLPqfzCgDcGncVDCgG  D
+Line: wwBFhwhhBgmcVzhghG  h
+Line: tbJbjjtJvwtdtwjpFtlbvtdTLNSMqNqMMgqNHPlZRTNggL  l
+Line: qmjMHsZmZSbjbZMjSLFFFFwgsgvFswpwww  s
+Line: hRJBhmnhhvFFwhcv  h
+Line: llfWDWzrzBNTRfNBrWzzTmZbGTMjPqMmZPjVbSZGSP  T
+Line: CRRPLwwcclcGVppQ  c
+Line: SHFjDjjHDTfSDNTTHfSHjQVGrpmllQQWltVVVZGp  j
+Line: HFlqzDTfqlzwbgPJLwCP  z
+Line: WRCNLphpLppSCWVHNfLRzVnQMnBnMddPMQDFQgrhPQFM  h
+Line: jTjJqvqjvPVJFJFBJF  J
+Line: qTsZbvGqqZlstsmZVljtwqwSHHNWczHSSRcWNSRHzzNfbW  b
+Line: glgzDzHjSrVHcVgbrjmNsscNGmNWssGNNtst  c
+Line: hHPQLHJpwdLpdHfQQtnZmNMwnZGZWwsFZM  w
+Line: QpdhPJRTJfPphJfhCBlVqVvgvVDBbvVqDbHD  B
+Line: VtHzjZpjVtHrprgGmjHsGHNdSJFQRcLJqCdQcSqJNpcq  p
+Line: bBWfTPwhbfDlMnhffRwQJQNdqJcLFQLSdR  w
+Line: bhBhvfMWTnlDnTBfPSmvmjsjmmGtzHtsHm  v
+Line: pcRPRPWrSDcJGZSStmwZZS  S
+Line: VnLfCfTlfVzfnMMBCqVNZJdtjNtJjhJdGNNbwT  T
+Line: BLvqCCMVsnRQsPQgDcZH  s
+Line: cQbqqQhDGhlQfQlhQrqGsTNgLgCpRgLTPPPLNbpg  b
+Line: wtHVddVFwSHznZwwznCpRBdjppNBNTTdCjRR  d
+Line: ZtWFwWtSmvVnwZDrCMGfQlDDJQmD  m
+Line: PzPZGCZzrZrlhdjdCqfCsqQdRD  C
+Line: cbvZLVVFvbbNSNFHSDnsDQdnfqNQDRngsR  N
+Line: FJHSLSFSScJJbWHFmFVFSZmrrzBmhtBwmzBMPMPzPh  m
+Line: nlpFcLBgcVcLbssGVBGGrlpGPhJJJJJqPBZPDNMQMJJhJQZZ  B
+Line: SSTjHzfHwtZSPVQVQMRQ  S
+Line: TzVHwWfTtzwdVzsbFnGgsbdcGrLc  d
+Line: FppVBRVZDdLmrDGmmfrQ  D
+Line: NtNMPNshJCzznLGJSrqRrRrr  J
+Line: tRssthhPlCWhPzsWtzhzCbVVjwTpVwdZZTpwjbdBbwBc  b
+Line: TTWblHWScvPCCHTWFzSrqqsNNSmdmqrrpz  S
+Line: RLRwjjnjZNprzmmZcq  Z
+Line: QQgtQnccQDGjgLDRRcLthQhFBvCbMtMHTWlBFllBbFCMTW  t
+Line: WnBVNvDnVsNvZWdrWDLVDMbsHpTjpHCSSClsbSCCMH  s
+Line: GPFtmztzgPhRFtJTdbTwjppSCjpgSl  g
+Line: hJcfPtQhdtWNVZqNnqNQ  Q
+Line: GLcqZPPsnqQcFsmBBrqRvrddNqrC  q
+Line: MtHthJwLllwvjRvvtrvBRS  t
+Line: VHMfDLbpfznszZQG  f
+Line: WBSdPlQPRfBtGQPfBGPBJgzgjwsJzsszJwCrdwCT  d
+Line: ZpppVpMVpnVHMVVbZRJrCgwRzTJrwNJw  Z
+Line: MvhmnpLqLmhVmBlftRQBFSlR  m
+Line: hhQlSJqhtCSnqZJnqShSlNDwRzpvdwRlMBMMdcjRjMpMRc  l
+Line: frrGmLmWbfFrsmFHmBzBvBcwdJbvpjzbMM  b
+Line: mmgFrVGLWJLFGsgfhSVtVPqntqnnSStN  V
+Line: SFJTJTSqswwFQbwf  F
+Line: cDtcWPclrtPwVsfssQmN  P
+Line: HDtwWCgWdggdzSGJMSzGMq  d
+Line: JpqJtWRJMhCMJpMQCWtFrjgHdgdlgllwNjlQjldH  Q
+Line: fBzPZcZvnBmDnZvZBZDmPvglVVVdgHHSwrNRgVgwNPRH  P
+Line: GbZnZccfvcsZmccsmnnZTRbCCMWFTWJqFCCMJFRT  b
+Line: vrrFqrFTBTmLmNrLMqMTHddJbHpWnhdWdWbHhJGM  M
+Line: wBzfwzcQSzWSSshpdWGp  S
+Line: gwjPPPDQtzQlzQDPqTgLBRmRqZBvqFNR  g
+Line: bWVptFFsbPcZsGLhsZGmLB  s
+Line: qnWrnrHdMCDCNqfWmvRRZSSRLdRGZGRG  d
+Line: nNqqNDfMrMWHDQNHzWfHNDnwzblpzFlbwtFbVVlwVcPJpP  z
+Line: BHJhlHdJQggvddglJBBhglhQzZHPZpFFPDMzFDDRDFZZDFZD  H
+Line: rSTfqnCffMfCVfCLNqbzbjWNDbbWDPFpPFbP  N
+Line: nfnnrSfCTVSwrqSLCGfTGlgQhlvsGMJQJBhhssJhGc  G
+Line: tBjjDjjqfDjLfJlrLgglvmrlmrcc  L
+Line: TwNNTVhwwpgvGSNNSssS  N
+Line: TbwhnvvChhbVRTPPRJBJQQfJttMQQJCQfW  C
+Line: mWSvSQVgmWQsQvspQJlrlLnJLLpCClhhlp  p
+Line: bFHRjZdNjjBZzFzhtnCllCcJLrCBll  B
+Line: HFFNHbdZZLZjfPFjHVQmWDDVsvsmTqVqDf  f
+Line: JJPllQQClqgBCgdHwHbpjVTwHd  g
+Line: tmGZtjGjHZpVbfMT  Z
+Line: ShGjNGWmDSNcNRtGmshDRzzCvzQJJRBLrvlrBPJv  R
+Line: cTpqsTWqVVpsNLfvCDFlMFDVFL  V
+Line: JnndJPddQgzHlvMJFDhLCG  J
+Line: BjtntgdRnQgzjdBRQBlpNWrTTlNTSwNpWS  B
+Line: qHmqLVLjmVqsDBLtmjmbtPwCTwwPzGWRgGwGwMwW  t
+Line: ZhcCNCSprRTWTwSnWW  S
+Line: hflhZvvQhppZfcNpvrhpQHjVjLmbVmmVHVCFDvqVFb  v
+Line: nnNrwDnZrspwDNnZsNSDsNbCmpjvMTPQjLMmPmmQPGBTQP  p
+Line: FdVtRdRfctBQPmTtTLQB  t
+Line: qhzWVWJqVHwbhlLSsS  h
+Line: htWmhDhFztnztDhtBmBtghPRSrpfjVwPdfPwpwnRSVrr  n
+Line: cbCHvgJGcTqbqcbqqqcqsMsRVrSCwffdRPPpVpwCRSwfjj  C
+Line: GlgGQqTqbgQzttmBNNFz  Q
+Line: NWQNQgdTgjQNddTZfrCQWRDnnnbqnLqnRcjJlqqvDj  j
+Line: FtSSmSmJhpllcclDvpln  p
+Line: JBVVSsSFBVBttShFGSPQfCGNdrMfZZTQTZNNdC  G
+Line: HgHthMhphcbfbMMfHhsGGDCRRVlcVSScsCRz  c
+Line: nWvPFqLqPNdjnNLnjdJnPdWjGlssDPSsllVCRzlTCTGlSDzS  P
+Line: RvddJRJQHwQwpZZb  Q
+Line: gdZwgpjZZQtHTdrWrwdpWRnlhNBRlLbFthNhflhBnL  t
+Line: CVzDCPGMVqVmGsGGbJCmCDvMcRcqnBFFFnRBBNRBBNqhnFfF  q
+Line: DsmSGsGPzvMGJvdbgTSTbjbSSdgH  S
+Line: jBGmbNBQGdBNNDJNQRLLVDsHtDRzHHZZcH  D
+Line: wCWPFWPCrPhPrplvprhwpCHHtszttqZslRVHLtzVlJZL  l
+Line: vprMMvMnJCwnnPShNGSTfGSfNmmgdNff  S
+Line: bPtLbvVWWztbLSVVnbszpzQsrcDDBdpRcDrs  z
+Line: llZmgCZqgCFgmdRdJcscBdJsmQ  m
+Line: FZlgfqCFfgZHlqCMCglwCFGWntLLSMRSPGPVttWRtVGL  M
+Line: vtnDsDtrnrSvrMVmbrrJgPCmBm  r
+Line: FpQHzFclLVzWHhwHLQLlHLzPmMBQCJTdTmCTmBTJTTmgQg  Q
+Line: pllcVWqlffZqZtZD  q
+Line: TSSZWpsQmZWcTZSvsTTTppNPzrBPrNBrzQNVFrBBNPqP  Q
+Line: CgjmCbtGgftMmLtLmffzBzJJJNVVMNzNBqJrFN  M
+Line: gjgjLgtLwgbGjHdhhGdvmlnllnpWnplZvcvwTl  w
+Line: htLrRFRtbbhlGSLRtbJBJsjBmgMMgJgtmBzz  t
+Line: pZQWddQQfpZZffcDQZwddQwDMqDDsPgGJJzzjqzgJMBJgmms  D
+Line: QdcQTdwpGNwfrCRlRVlNLSbb  N
+Line: wrdvpVBVpMGPPjWjGZJJZT  G
+Line: tChCSlNfCCHtvHHWPHPZ  t
+Line: RbRRNvmcqcblfMwwdVBQQqqdpL  q
+Line: qcctqRcqmcHWzHBdDMZhfwthBnwt  t
+Line: JFsSNMSgNSNJJMGJBBdjhFDfhwhBrwnZ  F
+Line: TbgbsSgJMTJllblLCSPlsTCVQmRVVWpQzzqpqzVzHLQzcc  L
+Line: CVcWbjjSSCSSnpjWpCpprhHZlHtHGzHrZrHGclrl  c
+Line: gqZqdddLgmgNqvTGGHvvmrrGHT  m
+Line: FFDgZfZNLMgNfdDqDRnsnjBpbSbnMBBWpQpB  M
+Line: qwpQFwRnqFFfSBSfFt  F
+Line: LJJLGLWWtZlbgWHgGshhSdSVzmhHmfVzzC  H
+Line: lrbrbrNNJgDMLLbblGctvvvDqPcqctTTTcqP  D
+Line: vnblvbfHvlcHMlHlZbSPLTPLwCMBRRPRRFFR  M
+Line: tszzBqtzDsWVPRSmzLVmVL  z
+Line: tsNsDDNgGsqBrgBpgdHQbfhflcHdpZvdbh  p
+Line: cCpLtpGGLsgsppcpmGGHMtjfHRVhvvVVFRfhjV  t
+Line: NWnnnNNndQnQZdCdzzRVMHzvhhHWWWjj  W
+Line: CPJJrnSZpGDJLGTL  J
+Line: cnJzpcnmnQVFbzTlvTHBlb  z
+Line: tWCDPjfsDGfZhddhjjdTvFTgFgvbnFHvdHqT  d
+Line: hjfCjwDDGjPthsfhsnGNrJcQcRmJMLVJrJNMLw  w
+Line: CPPRrSlRccPcwTHwfdwTHdfl  l
+Line: mLQLLjhQhhQLZvpzssHDhdTswzzTJD  h
+Line: gmjbBvQLWmgbQZBCSRnnnSMVCBHnBS  B
+Line: sWrBJbsVqschzhQzHh  s
+Line: gtFmztnSlSfdlmnZSdSwcwGRTjcTcwwTcHccRg  g
+Line: FzFDzMZCdDZtCSrJVBMqWVrqNBqN  M
+Line: TvWlhhfhZJVgtSSl  l
+Line: ddBdGGdFmmBbdzqqPDDGGmdDZSgttHtZppSgzZHSgMhtMgtz  z
+Line: PGqdrbbbdPnrcjjhTRWLLc  r
+Line: trrmJWcrVwVbcPScdcBdGPHH  c
+Line: JTQnfjlJTpQFfMLlNJHHGDPdGsSdDjHGDPPH  j
+Line: ffFfnCTTCfTlplTMvNVzqWvwVzrrhwmWhJbW  v
+Line: hVtDtgcghzJpmmhlwp  h
+Line: srsnrqqsPqsBPvnqRBRMPbnwlplpmCStJwmzJPtJzJfwSw  P
+Line: bbrqjBbvGsjGGBWqMVFFVDNVNjZjgtgFgZ  j
+Line: mnmhBDHhwWCHsTgRsH  H
+Line: dcSlFvccMFMMFFggNsTzzvvzWnVW  v
+Line: llQdllZScFplJPpdcZSqBqjhmtnrwrDGnQGhrq  Q
+Line: ZffVNgfTdmPVltsnnGwgQDnB  g
+Line: rMCFLMHpzCMFzHpzbrcHFLzBwsDsDDnlDBJrDDBBSJSnBn  r
+Line: MLMjMzqpCzvwqTmwZdvq  q
+Line: DDNlWPRqgPRPsRFjJQZbchJZbgQJ  g
+Line: zzrLLznpLbHnjcBHvVvHvJcZ  H
+Line: ndmrTzbMMTfzrTfnTLrzdpmsPPPqlqGDNNsPCRDRqRsD  m
+Line: zzdqTNfTfdfhgQhgqMFSjRDtDRWHqtWlwtqDRS  q
+Line: ssBCrcmpVGZvVRDdSDRwtmWdDb  m
+Line: rvGPCZLCVCPVBZFdnfThgNgLJNhf  L
+Line: bslcrssQwDPbQrrcsbsnQrjMLthPMMRhLRhLRgzmgPhRgM  P
+Line: DffvDfHGfNFdpfTdMtghLBThzVmBhBtM  T
+Line: SNvJNJdflDDbcDWJ  J
+Line: HFlHNpWsTlGWbFsGFTGHFLLNzPPhLVPMzVzMNPhhzP  N
+Line: jSvZtmrqqpcrCpPVzw  r
+Line: dddQvqDgDmjdSQQdqZjStpffWGgBRWTGfGsRlWBlHF  g
+Line: THnTbNrdBnLTHHnTnBrWRTndsccZsLZcDqmLDPcDlQDsmmsZ  L
+Line: ptwzzhpvGSVdqQlmszqmqPqc  z
+Line: wGVjSddCBggCHFWN  C
+Line: LFFbdbhhhvwvfTNdRhhRRvMbHDGjcfcGfDjtDHHcHqGjDqqj  f
+Line: WlQnVpWSSWWsPsgDqDzHDLHjJcttGP  P
+Line: rrWsZrgVnWrWSlmSlmSBFFbvTThhBFvvZLBhRw  Z
+Line: BgBdcjThvjFcTggrqvVfzlnnPlrqLt  v
+Line: JpwJGPsQwpwSssHpPLlzlnNlzLLNNLVtsN  s
+Line: JPMmWGmWPmHbHpJbWGJmDmwbBTRZMBBdZCRTRjFjhCZCCBTT  M
+Line: BjbcLFRfBRhnbGjCVVvPllpcPtcDmdlPpvPP  c
+Line: WrMQqCNgsqWWsTNCMZMWWsWPvJDJDddvlpDtZDpDDDDwvP  Z
+Line: qNMzzSzSQsGLbFCSCnVR  S
+Line: tTRpHJQpQBZcddhhMhvhJN  J
+Line: zswljflgMFbwPqmNmSdvShLNfLhm  f
+Line: qFbsMCVgsqMwRWHCWDDBDWpt  C
+Line: VSTCCWsJvGpHHCNC  C
+Line: GrqzZrrZjDljcDDlfjMqgRPfPvQPpBHNvHvBpvNQ  f
+Line: rljncDcznjMqhlhZDnltrzhTsGWtbVLFTTWGsbdWJdFTmL  t
+Line: mJPDSJJPZPJNrprSNrDmpZGrhFFhBqjGbGGVbFjhhfqBjBRV  G
+Line: cgnTQHdMQdTHdhqfggBhVqVfVS  g
+Line: nQdLLddssSJrmsNvZrPz  s
+Line: jfjffQzZQQMzZZfZZQFgjDWBCRlCBdTTBGGGRpBCgdhdBG  g
+Line: LrstWtNsbHLsprRBdlGpCwlh  r
+Line: HLnntbnscqLvvPNNfMWSSmDMDPjzjDzS  P
+Line: vhcGwWVvglltcfBn  c
+Line: BBSLrzSJLzJNJrLfPfPRsmDRmflD  L
+Line: jMjFZJNMqzrzZzFNFjNQqJzbCpBBvWdpvTCWhpVwdvHVCGbG  b
+Line: HlrnFmRmtRBQPVBTQHHQ  H
+Line: psSLJsLpTTdPdLTv  L
+Line: fCGgTgfSSCtRtFFzql  C
+Line: pfTpStppcDlWfbpDdzQRsQGJhfffQgJHzN  f
+Line: ZFZFZmBFwVwBVmLmLsRLRhHNzRLRNNzJ  L
+Line: FnnjwVPmnqqqjBjrTdblldCTpcPJtbTD  P
+Line: bdZHdWlrjslMMwGG  l
+Line: rDDTRBTqSqmJLBJRBTSJpmMsMMjhwvfMhjjfVGsLshhC  L
+Line: BqQFRPFRQBJgzrcZNHFdZt  F
+Line: wrDdLlDdPWZPTTrwlZpSsPsHVHsSCHnbzMHM  P
+Line: JtNFttNCjFvpppnMpJgSVS  J
+Line: NFFqFcCQCvfrZmGdZdmqrW  q
+Line: GMNNfJnNddJFJWsv  J
+Line: HSDwCmmghLmwmmHDpsvdFpMWpppptSbp  S
+Line: zCzBCgzhwmhzLrPnVrMqZBNfGf  B
+Line: DrHGtbltbCjjjffPrgsmzmcqsgDczdsmgJ  D
+Line: VZLwQLZLLVwLBQZnLVphhLQQqsTNmzJdcNTzzmJNqlNBsszz  B
+Line: wZLhVMplpQVRRlpVGPfjCjMGCrbHGWWb  M
+Line: BHpFrHHbBNTWWTWNhCPwPLNPjCdjLV  N
+Line: zJRRzJvZlcZsSMJdzSDjDtfDCtDtjDjjjj  S
+Line: dcJcszQJJGRJzRllMpGHpFTWmrTmBTbWWB  G
+Line: qnWWqhDhnjmjCMBlNRrfVfRNCB  C
+Line: vvBLBtGHJTHBddrNVJrVSVdr  J
+Line: BZLTHbgvHvTFBgTFFvhmWmmZDPmmZDsnqncs  Z
+Line: WBvmjDbSzTMmHHdpNHNF  m
+Line: ttlflZRfGtfWVRltGtflCdHnJrNJHNHnJddNMNCnpF  C
+Line: VVwssWQQfRGZcszBQzDbjSBvSBDP  Q
+Line: lSlQqQVqWWVWfqQWVJSTscdmPPwwTTmjjfpjPp  f
+Line: FCbzHbvHvtgrtFCvbvbbwdTwmsrwnTTpmdswmwcc  r
+Line: DtZbHdghztlLMQlWWhVQ  h
+Line: pqzzFSmdFqbQvlpdDGGrGBWPPBVNQnVttZ  Q
+Line: cgcjwfBMhHCjjLMCrtcnPcsnsPGVnrVs  c
+Line: JgCChjjjBHhRRLLjjhplzvzpSFJvzzlDbSqm  J
+Line: mZzVQZMhmrffwfQhWhzmrmpBtRcdbnbcdcMpBbDbncdD  M
+Line: jsLTSlTWRBSDpnDn  S
+Line: GLTsGWGFsfmJGZVJZm  G
+Line: BGWshBGnsFWSLWBLlSSLWRJHnrVPrPcNHCNHctnPPJ  n
+Line: QmvQCqqMTZqvgmvTjpZCMgMtrVctPptHtrNVrptbJJbrRP  p
+Line: CzjCZfCwDzShDWdF  z
+Line: HmQlQHmJnpmptmzt  m
+Line: MTqMjMPvTvVvhpdztZnSwzwZqS  q
+Line: CcbLLPTMtCCsjHNHQFLRRFlRNN  L
+Line: GDFwLLLLSrbdPlFBMFsslFHmZH  F
+Line: TnJCgthHpVTfZMQZQmzWnZ  n
+Line: hjvtjtghtqJvVjhTgNhJTvdvdDDRbbccrwPdcGwrHS  v
+Line: MQQMBPzMGQBPBbDQPMhpnRwsGnRhNrFFpRnF  G
+Line: vmgHcmCTTlvvvZvTmqcTfmCRdddFnwdRdnVwFpVfpRnwNw  f
+Line: gvmqJTcHclCQJNzjMLWbLj  J
+Line: DbqqDDbQFqfNtZSLSq  q
+Line: RrdjPdmrpWBdmWRdccfLtNttSDMZBfftLMLf  B
+Line: dCcgmgRrWcgcppjCVVVVFHFnDnbJnb  C
+Line: fZMFfrtVdZSDVwTgjRMLhwTCLj  M
+Line: cNzPBNpclllzHbmTNRhqCRTgjC  N
+Line: nhhWJzhGPlQcGvsvfJtSfZfrtt  J
+Line: PSzrBWQBBGzBlnSnWtDrqHfNfwVwHcLNjHjwcDNmFH  D
+Line: hbRhtRCRpRvsRgVVVcNHNNNCwLwc  C
+Line: ZtRTRvttWWzBPlGZ  Z
+Line: tcLnctNsJrWWNDTN  N
+Line: pwPPSjHSHHfzvmSvvvFVVGqGVqGmFqrDWgDr  m
+Line: pPSvfPQMzCQCSbhllLnQDhbtQZ  Q
+Line: DmLffDhpVhjjVwvbwNVFbbNSNH  V
+Line: JRPBgMPRHBrMHMHqrBMqWJBSQQNbCvndNrdvCNCFwFrQnv  r
+Line: WcqJcPGMGtWRRBtgZjjspGHTLHGHTppm  G
+Line: ptJtWJpqRwDZZDVWpbDWqlvvflfMjlfCMjdCCdtslv  t
+Line: rLwTBGBzBBQTzmwCCjvdvlLllddsMl  L
+Line: NBwTmrGNgrTrcgPpWgWPDSVVPW  g
+Line: CdglMnrlSSqDPpcsZb  S
+Line: ccwmVJtvVvVtNhBpBFPDVpqbbD  V
+Line: TRGQjJjGTmtrTCgHWLfrcn  T
+Line: JNNhLwWwWQHNPDmmjHpc  N
+Line: zMqZCvVCSMVqMSTVvZVGsBnlslpmsmzlPmsHPsPB  z
+Line: qTVqrgdCCbhfHJQFtg  g
+Line: wNwCBBCZsfQWfmLCGSmmFRGSSF  C
+Line: zjnPHPVqMhhZLTcbpbSncp  n
+Line: lVlhlgzlPZlwtgBddJdfvf  g
+Line: JWRWRRLWJLnjtjnLzGzznflBvfPvPMqMDqdbzblCzC  z
+Line: TTScTVbHmTsVFrmcsgcHFlPMMvlvrDPdlrDDqdldvl  r
+Line: bVpcpchgsFZHbhSmSTsHFFjwtZjnjLttntNjLjNLWtjw  Z
+Line: rffjPJzWzrgPpGWHVNqTtmqFTVRH  W
+Line: cswhvlLBvSLsCtbFccmqVFNTbb  c
+Line: wwZSCZSnCLsSDGgDmpGnfmmr  n
+Line: rTfJTNtjfNljlrWSlzRtNlTqsddwGnsnHHwwhssTsnqw  T
+Line: VpbpZZbvPLbZbbBhwqMHhsGMnJdVwV  V
+Line: mgQZJDLBJbbbcbgZClCSfWlrCjRjlDCR  D
+Line: fSpwcVfzsztcSSWNNMbnMRqTvtTv  t
+Line: mJFmGDDDhGhBJHCQddllqTvCllqTRRWNnMbT  C
+Line: FdFDGdDDDhhHdZDjhDmpwSPVZszpwZsVgsPRZs  Z
+7845
+#+end_example
