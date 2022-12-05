@@ -88,3 +88,65 @@ your strategy guide?
 
 #+RESULTS:
 : 11841
+
+
+* Part 2
+
+** Problem
+
+** Solution (C++)
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+
+  char winningMove(char opponentPlay) {
+      return (opponentPlay - 'A' + 1) % 3 + 'A';
+  }
+
+  char losingMove(char opponentPlay) {
+      char move = opponentPlay - 1;
+      if (move < 'A') move = 'C';
+      return move;
+  }
+
+  int rockPaperScissorsScore(const string& filename) {
+      ifstream file(filename);
+      char opponentPlay, outcome;
+      int totalScore = 0;
+
+      while (file >> opponentPlay >> outcome) {
+          int score;
+          char play;
+
+          switch (outcome) {
+          case 'X': // We need to Lose
+              score = 0;
+              play = losingMove(opponentPlay);
+              break;
+          case 'Y': // Draw
+              score = 3;
+              play = opponentPlay;
+              break;
+          case 'Z': // Win
+              score = 6;
+              play = winningMove(opponentPlay);
+              break;
+          }
+
+          score += play - 'A' + 1;
+          totalScore += score;
+      }
+
+      file.close();
+      return totalScore;
+  }
+
+  int main() {
+      cout << rockPaperScissorsScore("input.txt") << "\n";
+      // cout << rockPaperScissorsScore("example.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: 13022
