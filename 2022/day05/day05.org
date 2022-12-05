@@ -81,3 +81,93 @@ tops of all the stacks in sequence to construct the message.
 
 #+RESULTS:
 : CFFHVVHNC
+
+
+* Part 2
+
+** Problem
+
+Now, when multiple items are moved from one crane to another, all the
+items are moved as a group so that the other (top-bottom) remains the
+same on the new crane.
+
+
+** Solution
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <vector>
+  #include <stack>
+  using namespace std;
+
+  stack<char> createStack(const string& items) {
+      stack<char> stk;
+
+      for (auto c : items) {
+          stk.push(c);
+      }
+
+      return stk;
+  }
+
+  void moveItem(stack<char>& fromStack, stack<char>& toStack) {
+      char top = fromStack.top();
+      toStack.push(top);
+      fromStack.pop();
+  }
+
+  void moveItems(vector<stack<char>>& stacks, int count, int from, int to) {
+      --from;
+      --to;
+
+      stack<char> temp;
+      for (int i = 0; i < count; ++i) {
+          moveItem(stacks[from], temp);
+      }
+
+      for (int i = 0; i < count; ++i) {
+          moveItem(temp, stacks[to]);
+      }
+  }
+
+
+  string solve(vector<stack<char>>& stacks, const string& filename) {
+      ifstream file(filename);
+      int count, from, to;
+      string keyword;
+
+      while (file >> keyword >> count >> keyword >> from >> keyword >> to) {
+          // cout << count << " " << from << " " << to << "\n";
+          moveItems(stacks, count, from, to);
+      }
+
+      file.close();
+
+      string message = "";
+      for (auto stk : stacks)
+          message += stk.top();
+
+      return message;
+  }
+
+
+  int main() {
+      vector<stack<char>> stacks = {
+          createStack("BGSC"),
+          createStack("TMWHJNVG"),
+          createStack("MQS"),
+          createStack("BSLTWNM"),
+          createStack("JZFTVGWP"),
+          createStack("CTBGQHS"),
+          createStack("TJPBW"),
+          createStack("GDCZFTQM"),
+          createStack("NSHBPF")
+      };
+
+      cout << solve(stacks, "input.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: FSZWBPTBG
