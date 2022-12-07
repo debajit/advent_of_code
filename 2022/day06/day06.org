@@ -1,0 +1,70 @@
+#+TITLE:Day 6: Tuning Trouble
+
+* Part 1
+
+** Problem
+
+In a string a start-of-message marker is a set of 4 unique characters.
+
+For the given string. Find out how many characters need to be
+processed before the first start-of-message marker is detected.
+
+** Solution (C++). θ(n) in the length of the string
+
+#+begin_src C++ :includes '(<vector> <numeric> <iostream> <map>) :namespaces std :flags -std=c++20 :results verbatim
+  #include <iostream>
+  #include <fstream>
+  #include <deque>
+  #include <unordered_map>
+  using namespace std;
+
+  bool hasDuplicates(const deque<char>& window) {
+      unordered_map<char, bool> exists;
+
+      for (auto item : window) {
+          if (exists[item])
+              return true;
+          else
+              exists[item] = true;
+      }
+
+      return false;
+  }
+
+  // Returns the 1-based end index of the first 4-char start-of-packet
+  // marker consisting of all unique characters.
+  int findPacketMarker(const string& filename) {
+      const int PACKET_SIZE = 4;
+      string str;
+      deque<char> window;
+
+      ifstream file(filename);
+      getline(file, str);
+
+      for (int i = 0; i < PACKET_SIZE; ++i) {
+          window.push_back(str[i]);
+      }
+
+      if (!hasDuplicates(window))
+          return PACKET_SIZE + 1;
+
+      for (int i = PACKET_SIZE; i < str.size(); ++i) {
+          window.pop_front();
+
+          window.push_back(str[i]);
+
+          if (!hasDuplicates(window)) {
+              return i + 1;
+          }
+      }
+
+      return -1;
+  }
+
+  int main() {
+      cout << findPacketMarker("input.txt") << "\n";
+  }
+#+end_src
+
+#+RESULTS:
+: 1640
